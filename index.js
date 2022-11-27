@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 
 const app = express();
@@ -12,10 +12,33 @@ app.use(express.json());
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.cklgizg.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+async function run() {
+    try {
+        const televisionCollection = client.db("RohanTelevision").collection('televisions');
+        const productCollection = client.db("RohanTelevision").collection('products');
 
+        app.get('/televisions', async (req, res) => {
+            const size = parseInt(req.query.size);
+            const quary = {}
+            const cursor = televisionCollection.find(quary);
+            const televisions = await cursor.limit(size).sort({ timestamp: -1 }).toArray();
+            res.send(televisions);
+        });
+
+        app.get('/televisions/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { category_id: id };
+            const products = await productCollection.find(query).toArray();
+            res.send(products);
+        });
+    } finally {
+
+    }
+
+}
+run().catch(error => console.log(error));
 app.get('/', (req, res) => {
     res.send('Genious car server is running now');
 })
