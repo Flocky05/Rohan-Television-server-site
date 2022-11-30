@@ -28,6 +28,7 @@ async function run() {
       .db("RohanTelevision")
       .collection("televisions");
     const orderCollection = client.db("RohanTelevision").collection("orders");
+    const userCollection = client.db("RohanTelevision").collection("users");
     const productCollection = client
       .db("RohanTelevision")
       .collection("products");
@@ -57,15 +58,46 @@ async function run() {
     });
     app.get("/order", (req, res) => {
       orderCollection
-        .find({})
+        .find({ buyerEmail: req.query.email })
         .toArray()
-        .then((data) => res.send(data));
+        .then(async (data) => {
+          await Promise.all(
+            data.map((el) =>
+              productCollection
+                .findOne({ _id: ObjectId(el.television_id) })
+                .then((el2) => (el.television = el2))
+            )
+          );
+          res.send(data);
+        });
     });
 
     app.post("/products", async (req, res) => {
       const product = req.body;
       const result = await productCollection.insertOne(product);
       res.send(result);
+    });
+    // user routes start
+    app.post("/user", (req, res) => {
+      userCollection.insertOne(req.body).then((_) => res.send(_));
+    });
+    app.get("/user", (req, res) => {
+      userCollection
+        .findOne({ email: req.query.email })
+        .then((_) => res.send(_));
+    });
+    app.delete("/user/:id", (req, res) => {
+      userCollection
+        .deleteOne({ _id: ObjectId(req.params.id) })
+        .then((_) => res.send(_));
+    });
+    app.get("/users", (req, res) => {
+      userCollection
+        .find({
+          role: { $ne: "admin" },
+        })
+        .toArray()
+        .then((_) => res.send(_));
     });
   } finally {
   }
