@@ -99,8 +99,7 @@ async function run() {
         .toArray()
         .then((_) => res.send(_));
     });
-  } finally {
-  }
+  } 
 }
 run().catch((error) => console.log(error));
 app.get("/", (req, res) => {
