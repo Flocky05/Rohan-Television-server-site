@@ -91,6 +91,15 @@ async function run() {
         .deleteOne({ _id: ObjectId(req.params.id) })
         .then((_) => res.send(_));
     });
+    app.put("/user/:id", (req, res) => {
+      userCollection
+        .updateOne(
+          { _id: ObjectId(req.params.id) },
+          { verified: true },
+          { upsert: true }
+        )
+        .then((_) => res.send(_));
+    });
     app.get("/users", (req, res) => {
       userCollection
         .find({
